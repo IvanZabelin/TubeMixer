@@ -5,6 +5,7 @@ from yt_dlp import YoutubeDL
 
 
 def download_youtube_shorts(query, max_videos, output_folder, progress_var, root):
+    """Скачивает шортсы по заданному запросу."""
     os.makedirs(output_folder, exist_ok=True)
     search_url = f"ytsearch{max_videos}:{query} shorts"
 
