@@ -1,103 +1,100 @@
 import ttkbootstrap as ttk
 from ttkbootstrap.constants import PRIMARY, SUCCESS, DANGER, INFO, WARNING
 from tkinter import filedialog, simpledialog, messagebox
-from utils.donwnload import download_youtube_shorts
+from utils.download import download_youtube_shorts
 from utils.replace_audio import replace_audio_in_folder
 from utils.compile_videos import compile_videos, compile_random_clips
 
-def replace_audio_action(progress_var, root):
+
+def ask_directory(title: str):
+    """Запрашивает у пользователя путь к директории."""
+    path = filedialog.askdirectory(title=title)
+    return path or None
+
+
+def ask_integer(title: str, prompt: str, minvalue: int = 1):
+    """Запрашивает целое число у пользователя."""
+    result = simpledialog.askinteger(title, prompt, minvalue=minvalue)
+    if result is None:
+        messagebox.showerror("Ошибка", "Введите корректное число.")
+    return result
+
+
+def reset_progress(progress_var, root):
+    """Сбрасывает прогресс-бар."""
     progress_var.set(0)
-    video_folder = filedialog.askdirectory(title="Выберите папку с видео")
+    root.update_idletasks()
+
+def replace_audio_action(progress_var, root):
+    reset_progress(progress_var, root)
+
+    video_folder = ask_directory("Выберите папку с видео")
     if not video_folder:
         return
 
-    audio_folder = filedialog.askdirectory(title="Выберите папку с аудио")
+    audio_folder = ask_directory("Выберите папку с аудио")
     if not audio_folder:
         return
 
-    output_folder = filedialog.askdirectory(
-        title="Выберите папку для сохранения"
-    )
+    output_folder = ask_directory("Выберите папку для сохранения")
     if not output_folder:
         return
 
     replace_audio_in_folder(video_folder, audio_folder, output_folder, progress_var, root)
     messagebox.showinfo("Готово", "Замена музыки завершена!")
 
-    # Сброс прогресса после завершения
-    progress_var.set(0)
-    root.update_idletasks()
+    reset_progress(progress_var, root)
 
 
 def download_shorts_action(progress_var, root):
-    progress_var.set(0)
-    query = simpledialog.askstring(
-        "Запрос", "Введите ключевое слово для поиска:" 
-    )
+    reset_progress(progress_var, root)
+
+    query = simpledialog.askstring("Запрос", "Введите ключевое слово для поиска:")
     if not query:
         return
 
-    try:
-        max_videos = simpledialog.askinteger(
-            "Количество видео", "Введите количество видео для скачивания:",
-            minvalue=1,
-        )
-    except ValueError:
-        messagebox.showerror("Ошибка", "Введите корректное число.")
+    max_videos = ask_integer("Количество видео", "Введите количество видео для скачивания:")
+    if max_videos is None:
         return
 
-    output_folder = filedialog.askdirectory(
-        title="Выберите папку для сохранения шортсов"
-    )
+    output_folder = ask_directory("Выберите папку для сохранения шортсов")
     if not output_folder:
         return
 
-    # Запуск скачивания с прогрессом и получение фактического количества
     downloaded = download_youtube_shorts(query, max_videos, output_folder, progress_var, root)
     messagebox.showinfo("Готово", f"Скачано {downloaded} из {max_videos} видео.")
 
-    # Сброс прогресса после завершения
-    progress_var.set(0)
-    root.update_idletasks()
+    reset_progress(progress_var, root)
 
 
 def create_compilation_action(progress_var, root):
-    progress_var.set(0)
-    input_folder = filedialog.askdirectory(
-        title="Выберите папку с короткими видео"
-    )
+    reset_progress(progress_var, root)
+
+    input_folder = ask_directory("Выберите папку с короткими видео")
     if not input_folder:
         return
 
-    output_file = filedialog.asksaveasfilename(
-        defaultextension=".mp4",
-        filetypes=[("MP4 files", "*.mp4")]
-    )
+    output_file = filedialog.asksaveasfilename(defaultextension=".mp4", filetypes=[("MP4 files", "*.mp4")])
     if not output_file:
         return
 
-    try:
-        target_duration = simpledialog.askinteger(
-            "Длительность ролика",
-            "Введите желаемую длительность итогового видео (в секундах):",
-            minvalue=1
-        )
-    except ValueError:
-        messagebox.showerror("Ошибка", "Введите корректное число.")
+    target_duration = ask_integer(
+        "Длительность ролика",
+        "Введите желаемую длительность итогового видео (в секундах):",
+    )
+    if target_duration is None:
         return
 
-    # Запуск создания компиляции с прогрессом
     compile_videos(input_folder, output_file, target_duration, progress_var, root)
     messagebox.showinfo("Готово", "Компиляция создана!")
 
-    # Сброс прогресса после завершения
-    progress_var.set(0)
-    root.update_idletasks()
+    reset_progress(progress_var, root)
 
 
 def create_random_clips_compilation_action(progress_var, root):
-    progress_var.set(0)
-    input_folder = filedialog.askdirectory(title="Выберите папку с короткими видео")
+    reset_progress(progress_var, root)
+
+    input_folder = ask_directory("Выберите папку с короткими видео")
     if not input_folder:
         return
 
@@ -106,20 +103,30 @@ def create_random_clips_compilation_action(progress_var, root):
         return
 
     try:
-        num_videos = simpledialog.askinteger("Количество роликов", "Введите количество роликов для создания:", minvalue=1)
+        num_videos = ask_integer("Количество роликов", "Введите количество роликов для создания:")
         if num_videos is None:
             return
-        target_duration = simpledialog.askinteger("Длительность ролика", "Введите желаемую длительность каждого ролика (в секундах):", minvalue=1)
+
+        target_duration = ask_integer(
+            "Длительность ролика",
+            "Введите желаемую длительность каждого ролика (в секундах):",
+        )
         if target_duration is None:
             return
 
-        compile_random_clips(input_folder, output_file, num_videos, target_duration, progress_var=progress_var, root=root)
+        compile_random_clips(
+            input_folder,
+            output_file,
+            num_videos,
+            target_duration,
+            progress_var=progress_var,
+            root=root,
+        )
         messagebox.showinfo("Готово", f"Создано {num_videos} роликов!")
     except Exception as e:
         messagebox.showerror("Ошибка", str(e))
     finally:
-        progress_var.set(0)
-        root.update_idletasks()
+        reset_progress(progress_var, root)
 
 
 def main_menu():
