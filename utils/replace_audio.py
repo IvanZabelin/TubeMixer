@@ -20,7 +20,8 @@ def replace_audio_in_video(video_path, audio_path, output_path):
             output_path,
             codec="libx264",
             audio_codec="aac",
-            threads=4
+            threads=4,
+            fps=30
         )
 
         video.close()
@@ -38,7 +39,8 @@ def replace_audio_in_folder(
     video_files = [f for f in os.listdir(video_folder) if f.endswith(('.mp4', '.mov', '.avi'))]
     audio_files = [f for f in os.listdir(audio_folder) if f.endswith(('.mp3', '.wav', '.aac'))]
 
-    for video_file in video_files:
+    total_files = len(video_files)
+    for i, video_file in enumerate(video_files):
         audio_file = random.choice(audio_files)
         video_path = os.path.join(video_folder, video_file)
         audio_path = os.path.join(audio_folder, audio_file)
@@ -46,7 +48,9 @@ def replace_audio_in_folder(
 
         replace_audio_in_video(video_path, audio_path, output_path)
 
-    if progress_var and root:
-        progress_var.set(100)
-        root.update_idletasks()
+        if progress_var and root:
+            progress_value = (i + 1) / total_files * 100
+            print(f"Обновление прогресса (замена музыки): {progress_value}%")
+            progress_var.set(progress_value)
+            root.update_idletasks()
     print("Замена музыки завершена!")

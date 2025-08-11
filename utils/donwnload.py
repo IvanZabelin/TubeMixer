@@ -1,10 +1,10 @@
 import os
+import glob
+
 from yt_dlp import YoutubeDL
 
 
-def download_youtube_shorts(
-        query, max_videos, output_folder, progress_var, root
-        ):
+def download_youtube_shorts(query, max_videos, output_folder, progress_var, root):
     os.makedirs(output_folder, exist_ok=True)
     search_url = f"ytsearch{max_videos}:{query} shorts"
 
@@ -16,14 +16,22 @@ def download_youtube_shorts(
         'progress_hooks': [lambda d: update_progress(d, progress_var, root)]
     }
 
+    # Считаем количество видеофайлов до скачивания
+    before_files = set(glob.glob(os.path.join(output_folder, '*.mp4')))
+
     try:
         with YoutubeDL(ydl_opts) as ydl:
-            info_dict = ydl.extract_info(search_url, download=True)
-            videos_downloaded = len(info_dict.get('entries', []))
-            print(f"Скачано {videos_downloaded} видео в папку {output_folder}")
+            ydl.download([search_url])
     except Exception as e:
         print(f"Ошибка при скачивании: {e}")
 
+    # Считаем количество видеофайлов после скачивания
+    after_files = set(glob.glob(os.path.join(output_folder, '*.mp4')))
+    downloaded_count = len(after_files - before_files)
+    print(f"Фактически скачано: {downloaded_count}")
+
+    return downloaded_count
+    
 
 def update_progress(d, progress_var, root):
     """Функция обновления прогресса в tkinter."""

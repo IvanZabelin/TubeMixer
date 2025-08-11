@@ -259,7 +259,7 @@ missing module named matplotlib - imported by tqdm.gui (delayed), imageio.plugin
 missing module named 'typing.io' - imported by importlib.resources (top-level)
 missing module named importlib_resources - imported by tqdm.cli (delayed, conditional, optional)
 missing module named olefile - imported by PIL.FpxImagePlugin (top-level), PIL.MicImagePlugin (top-level)
-missing module named PIL._avif - imported by PIL (optional), PIL.AvifImagePlugin (optional)
+missing module named cffi - imported by PIL.Image (optional), PIL.PyAccess (optional)
 missing module named defusedxml - imported by PIL.Image (optional)
 missing module named 'scipy.misc' - imported by moviepy.video.fx.resize (optional)
 missing module named cv2 - imported by imageio.plugins.opencv (top-level), moviepy.video.fx.headblur (optional), moviepy.video.fx.resize (optional)

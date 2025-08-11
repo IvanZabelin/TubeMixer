@@ -1,11 +1,12 @@
 import ttkbootstrap as ttk
-from ttkbootstrap.constants import PRIMARY, SUCCESS, DANGER, INFO
+from ttkbootstrap.constants import PRIMARY, SUCCESS, DANGER, INFO, WARNING
 from tkinter import filedialog, simpledialog, messagebox
 from utils.donwnload import download_youtube_shorts
 from utils.replace_audio import replace_audio_in_folder
-from utils.compile_videos import compile_videos
+from utils.compile_videos import compile_videos, compile_random_clips
 
 def replace_audio_action(progress_var, root):
+    progress_var.set(0)
     video_folder = filedialog.askdirectory(title="Выберите папку с видео")
     if not video_folder:
         return
@@ -29,6 +30,7 @@ def replace_audio_action(progress_var, root):
 
 
 def download_shorts_action(progress_var, root):
+    progress_var.set(0)
     query = simpledialog.askstring(
         "Запрос", "Введите ключевое слово для поиска:" 
     )
@@ -50,9 +52,9 @@ def download_shorts_action(progress_var, root):
     if not output_folder:
         return
 
-    # Запуск скачивания с прогрессом
-    download_youtube_shorts(query, max_videos, output_folder, progress_var, root)
-    messagebox.showinfo("Готово", f"Скачано {max_videos} видео!")
+    # Запуск скачивания с прогрессом и получение фактического количества
+    downloaded = download_youtube_shorts(query, max_videos, output_folder, progress_var, root)
+    messagebox.showinfo("Готово", f"Скачано {downloaded} из {max_videos} видео.")
 
     # Сброс прогресса после завершения
     progress_var.set(0)
@@ -60,6 +62,7 @@ def download_shorts_action(progress_var, root):
 
 
 def create_compilation_action(progress_var, root):
+    progress_var.set(0)
     input_folder = filedialog.askdirectory(
         title="Выберите папку с короткими видео"
     )
@@ -90,6 +93,33 @@ def create_compilation_action(progress_var, root):
     # Сброс прогресса после завершения
     progress_var.set(0)
     root.update_idletasks()
+
+
+def create_random_clips_compilation_action(progress_var, root):
+    progress_var.set(0)
+    input_folder = filedialog.askdirectory(title="Выберите папку с короткими видео")
+    if not input_folder:
+        return
+
+    output_file = filedialog.asksaveasfilename(defaultextension=".mp4", filetypes=[("MP4 files", "*.mp4")])
+    if not output_file:
+        return
+
+    try:
+        num_videos = simpledialog.askinteger("Количество роликов", "Введите количество роликов для создания:", minvalue=1)
+        if num_videos is None:
+            return
+        target_duration = simpledialog.askinteger("Длительность ролика", "Введите желаемую длительность каждого ролика (в секундах):", minvalue=1)
+        if target_duration is None:
+            return
+
+        compile_random_clips(input_folder, output_file, num_videos, target_duration, progress_var=progress_var, root=root)
+        messagebox.showinfo("Готово", f"Создано {num_videos} роликов!")
+    except Exception as e:
+        messagebox.showerror("Ошибка", str(e))
+    finally:
+        progress_var.set(0)
+        root.update_idletasks()
 
 
 def main_menu():
@@ -149,10 +179,19 @@ def main_menu():
     )
     create_compilation_btn.pack(pady=10)
 
+    random_clips_compilation_btn = ttk.Button(
+        app,
+        text="Создать компиляцию случайных клипов",
+        command=lambda: create_random_clips_compilation_action(progress_var, app),
+        bootstyle=WARNING,
+        width=50
+    )
+    random_clips_compilation_btn.pack(pady=10)
+
     # Футер
     footer_label = ttk.Label(
         app,
-        text="© 2025 TubeMixer Team",
+        text="© 2025 TubeMixer",
         font=("Arial", 10),
         bootstyle=INFO
     )
